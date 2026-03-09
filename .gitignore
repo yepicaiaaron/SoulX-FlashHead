@@ -6,4 +6,5 @@ assets/
 examples/
 sample_results/
 models/
-tools/
+tools/venv/
+SoulX-FlashHead-src/
