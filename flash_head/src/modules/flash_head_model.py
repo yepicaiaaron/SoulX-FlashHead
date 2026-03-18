@@ -1,4 +1,6 @@
 import torch
+torch.backends.cuda.enable_flash_sdp(True)
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
