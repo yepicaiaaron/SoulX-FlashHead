@@ -41,8 +41,12 @@ def get_scaled_bbox(
     # tile pix
     dis_x_left = new_width * 0.5
     dis_x_right = new_width - dis_x_left  # 0.5new_width
-    dis_y_up = new_height * 0.55
-    dis_y_down = new_height - dis_y_up  # 0.45new_height
+    
+    # default was 0.55 up, 0.45 down. To move head up, we want less space above, so smaller dis_y_up.
+    # Let's say we want the head to be at the top 30% or 40% of the frame.
+    head_y_anchor = 0.35 # (0.35 up, 0.65 down)
+    dis_y_up = new_height * head_y_anchor
+    dis_y_down = new_height - dis_y_up
 
     # Calculate new coordinates
     new_x1 = int(max(0, center_x - dis_x_left))
@@ -56,7 +60,7 @@ def get_scaled_bbox(
 
 def process_image(
     input_path,
-    face_ratio=2.0,
+    face_ratio=3.5,
     target_size=(512, 512),
 ):
     """
@@ -79,7 +83,9 @@ def process_image(
     
     try:
         # 读取图像
+        from PIL import ImageOps
         image = Image.open(input_path)
+        image = ImageOps.exif_transpose(image) # FIX: Apply EXIF rotation!
         image = image.convert("RGB")
         image_rgb = np.array(image)
         img_h, img_w = image_rgb.shape[:2]
@@ -101,8 +107,9 @@ def process_image(
         # 裁剪人脸
         crop_face = get_scaled_bbox(boxes_abs, img_w, img_h, face_ratio, image)
         
-        # 调整大小
-        crop_face = crop_face.resize(target_size)
+        # 调整大小，保持宽高比，避免拉伸变形
+        from PIL import ImageOps
+        crop_face = ImageOps.fit(crop_face, target_size, centering=(0.5, 0.5))
         
         return crop_face
             
